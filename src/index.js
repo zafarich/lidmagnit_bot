@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import connectDB from './config/database.js';
-import { initBot } from './config/bot.js';
+import { initBot, getBot } from './config/bot.js';
 import { setupBotHandlers } from './bot/handlers.js';
 import { startReminder } from './scheduler/reminder.js';
 import logger from './utils/logger.js';
@@ -27,6 +27,14 @@ app.get('/health', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
   });
 });
+
+// Telegram Webhook endpoint (production)
+if (process.env.NODE_ENV === 'production') {
+  app.post('/webhook', (req, res) => {
+    getBot().processUpdate(req.body);
+    res.sendStatus(200);
+  });
+}
 
 // API routes
 app.use('/api/users', userRoutes);
