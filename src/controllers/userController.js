@@ -1,5 +1,7 @@
 import User from "../models/User.js";
 import logger from "../utils/logger.js";
+import { getBot } from "../config/bot.js";
+import { sendContentToUser } from "../scheduler/contentDelivery.js";
 
 // Get current user by telegramId
 export const getUser = async (req, res) => {
@@ -224,6 +226,17 @@ export const skipTest = async (req, res) => {
       return res.status(404).json({error: "User not found"});
     }
 
+    // Set contentSchedule.startDate faqat birinchi marta
+    await User.updateOne(
+      { telegramId, 'contentSchedule.startDate': { $exists: false } },
+      { $set: { 'contentSchedule.startDate': new Date() } }
+    );
+
+    // Darhol birinchi kontentlarni jo'natish
+    sendContentToUser(getBot(), user).catch(err =>
+      logger.error('Error sending initial content:', err)
+    );
+
     console.log("[skipTest] Updated onboarding:", user.onboarding);
 
     // Return full user data (same format as getUser)
@@ -277,6 +290,17 @@ export const saveGrade = async (req, res) => {
     if (!user) {
       return res.status(404).json({error: "User not found"});
     }
+
+    // Set contentSchedule.startDate faqat birinchi marta
+    await User.updateOne(
+      { telegramId, 'contentSchedule.startDate': { $exists: false } },
+      { $set: { 'contentSchedule.startDate': new Date() } }
+    );
+
+    // Darhol birinchi kontentlarni jo'natish
+    sendContentToUser(getBot(), user).catch(err =>
+      logger.error('Error sending initial content:', err)
+    );
 
     logger.info(`Grade saved for user ${telegramId}: ${grade}`);
 

@@ -5,7 +5,9 @@ import morgan from 'morgan';
 import connectDB from './config/database.js';
 import { initBot, getBot } from './config/bot.js';
 import { setupBotHandlers } from './bot/handlers.js';
+import { setupAdminHandlers } from './bot/adminHandlers.js';
 import { startReminder } from './scheduler/reminder.js';
+import { startContentDelivery } from './scheduler/contentDelivery.js';
 import logger from './utils/logger.js';
 import userRoutes from './routes/userRoutes.js';
 
@@ -63,9 +65,13 @@ const startServer = async () => {
     // Initialize Telegram Bot
     const bot = initBot();
     setupBotHandlers(bot);
+    setupAdminHandlers(bot);
 
     // Start reminder scheduler
     startReminder(bot);
+
+    // Start content delivery scheduler
+    startContentDelivery(bot);
 
     // Start Express server
     app.listen(PORT, () => {

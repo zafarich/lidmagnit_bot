@@ -26,7 +26,7 @@ const getWebAppButton = () => ({
     inline_keyboard: [
       [
         {
-          text: "🚀 Dasturni ochish",
+          text: "🚀 Test topshirish",
           web_app: {url: WEB_APP_URL},
         },
       ],
@@ -64,7 +64,6 @@ export const setupBotHandlers = (bot) => {
 👋 Assalomu alaykum, ${firstName || "Foydalanuvchi"}!
 
 Botdan to'liq foydalanish uchun kontaktingizni ulashing.
-Bu orqali biz sizga shaxsiy kontent taqdim eta olamiz.
         `;
         await bot.sendMessage(chatId, welcomeMessage, getContactButton());
       } else {
@@ -117,7 +116,7 @@ Quyidagi tugma orqali dasturni ochishingiz mumkin:
         const successMessage = `
 ✅ Rahmat! Telefon raqamingiz qabul qilindi.
 
-Endi onboarding jarayonini davom ettirish uchun quyidagi tugmani bosing:
+Sinov testida qatnashish uchun quyidagi "Test topshirish" tugmasini bosing:
         `;
         await bot.sendMessage(chatId, successMessage, getWebAppButton());
         logger.info(`Phone number saved for user: ${telegramId}`);

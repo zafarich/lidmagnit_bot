@@ -77,6 +77,11 @@ const UserSchema = new Schema(
         default: false,
       },
     },
+    contentSchedule: {
+      startDate: { type: Date },
+      sentCount: { type: Number, default: 0 },
+      lastSentAt: { type: Date },
+    },
     isActive: {
       type: Boolean,
       default: true,
