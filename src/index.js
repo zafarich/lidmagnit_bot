@@ -10,6 +10,7 @@ import { startReminder } from './scheduler/reminder.js';
 import { startContentDelivery } from './scheduler/contentDelivery.js';
 import logger from './utils/logger.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // API routes
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api', (req, res) => {
   res.json({ message: 'API is working!' });

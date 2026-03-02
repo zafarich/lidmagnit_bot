@@ -1,4 +1,5 @@
 import ScheduledContent from '../models/ScheduledContent.js';
+import User from '../models/User.js';
 import logger from '../utils/logger.js';
 
 const ADMIN_IDS = (process.env.ADMIN_TELEGRAM_IDS || '')
@@ -84,14 +85,30 @@ export const setupAdminHandlers = (bot) => {
     }
   });
 
-  // /resetcontent - barcha indekslangan kontentlarni o'chirish
+  // /resetcontent - barcha indeks + foydalanuvchilar progressini tozalash
   bot.onText(/\/resetcontent/, async (msg) => {
     if (!isAdmin(msg.from.id)) return;
     if (!channelId) return;
 
     try {
-      const result = await ScheduledContent.deleteMany({ channelId });
-      await bot.sendMessage(msg.chat.id, `${result.deletedCount} ta kontent o'chirildi.`);
+      const contentResult = await ScheduledContent.deleteMany({ channelId });
+
+      // Barcha foydalanuvchilarning kontent progressini ham reset qilish
+      const userResult = await User.updateMany(
+        { 'contentSchedule.sentCount': { $gt: 0 } },
+        {
+          $set: {
+            'contentSchedule.sentCount': 0,
+            'contentSchedule.lastSentAt': null,
+            'contentSchedule.startDate': null,
+          },
+        }
+      );
+
+      await bot.sendMessage(
+        msg.chat.id,
+        `${contentResult.deletedCount} ta kontent o'chirildi.\n${userResult.modifiedCount} ta foydalanuvchi progressi reset qilindi.`
+      );
     } catch (err) {
       logger.error('Error resetting content:', err);
       await bot.sendMessage(msg.chat.id, 'Xatolik yuz berdi.');
