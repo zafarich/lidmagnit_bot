@@ -27,6 +27,7 @@ export const getUser = async (req, res) => {
       phoneNumber: user.phoneNumber,
       onboarding: user.onboarding,
       grade: user.grade,
+      testAnswers: user.testAnswers,
     });
   } catch (error) {
     logger.error("Error getting user:", error);
@@ -260,7 +261,7 @@ export const skipTest = async (req, res) => {
 // Save user's grade after completing test
 export const saveGrade = async (req, res) => {
   try {
-    const {telegramId, grade, percentage} = req.body;
+    const {telegramId, grade, percentage, testAnswers} = req.body;
 
     console.log("Saving grade:", {telegramId, grade, percentage});
 
@@ -273,17 +274,23 @@ export const saveGrade = async (req, res) => {
       return res.status(400).json({error: "Invalid grade"});
     }
 
+    const updateData = {
+      grade: {
+        level: grade,
+        percentage: percentage || 0,
+        achievedAt: new Date(),
+      },
+      "onboarding.currentStep": "completed",
+      "onboarding.isCompleted": true,
+    };
+
+    if (Array.isArray(testAnswers)) {
+      updateData.testAnswers = testAnswers;
+    }
+
     const user = await User.findOneAndUpdate(
       {telegramId},
-      {
-        grade: {
-          level: grade,
-          percentage: percentage || 0,
-          achievedAt: new Date(),
-        },
-        "onboarding.currentStep": "completed",
-        "onboarding.isCompleted": true,
-      },
+      updateData,
       {new: true},
     );
 

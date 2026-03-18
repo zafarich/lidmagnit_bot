@@ -77,6 +77,15 @@ const UserSchema = new Schema(
         default: false,
       },
     },
+    // Test javoblari
+    testAnswers: [
+      {
+        questionId: Number,
+        selected: Number,
+        correct: Number,
+        isCorrect: Boolean,
+      },
+    ],
     contentSchedule: {
       startDate: { type: Date },
       sentCount: { type: Number, default: 0 },
