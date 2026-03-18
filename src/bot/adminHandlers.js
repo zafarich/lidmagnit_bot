@@ -171,6 +171,54 @@ export const setupAdminHandlers = (bot) => {
     }
   });
 
+  // /reindex - kanaldan o'chirilgan postlarni bazadan tozalash
+  bot.onText(/\/reindex/, async (msg) => {
+    if (!isAdmin(msg.from.id)) return;
+    if (!channelId) {
+      await bot.sendMessage(msg.chat.id, 'CONTENT_CHANNEL_ID sozlanmagan.');
+      return;
+    }
+
+    const contents = await ScheduledContent.find({ channelId }).sort({ channelMessageId: 1 });
+    if (contents.length === 0) {
+      await bot.sendMessage(msg.chat.id, 'Indeksda hech qanday kontent yo\'q.');
+      return;
+    }
+
+    const statusMsg = await bot.sendMessage(
+      msg.chat.id,
+      `⏳ ${contents.length} ta post tekshirilmoqda...`
+    );
+
+    let removed = 0;
+
+    for (const content of contents) {
+      try {
+        // Postni adminga forward qilib tekshirish
+        const forwarded = await bot.forwardMessage(msg.chat.id, channelId, content.channelMessageId);
+        // Post mavjud — forward qilingan nusxani o'chirish
+        await bot.deleteMessage(msg.chat.id, forwarded.message_id);
+      } catch (err) {
+        if (err.response?.statusCode === 400) {
+          // Post kanaldan o'chirilgan — bazadan ham o'chirish
+          await ScheduledContent.deleteOne({ _id: content._id });
+          removed++;
+        }
+      }
+      await delay(50);
+    }
+
+    const remaining = await ScheduledContent.countDocuments({ channelId });
+
+    await bot.editMessageText(
+      `✅ Reindex tugadi!\n\n` +
+      `O'chirilgan postlar: ${removed} ta\n` +
+      `Qolgan kontentlar: ${remaining} ta\n` +
+      `Kunlar: ${Math.ceil(remaining / 2)} kun`,
+      { chat_id: msg.chat.id, message_id: statusMsg.message_id }
+    );
+  });
+
   // /resetcontent - barcha indeks + foydalanuvchilar progressini tozalash
   bot.onText(/\/resetcontent/, async (msg) => {
     if (!isAdmin(msg.from.id)) return;
